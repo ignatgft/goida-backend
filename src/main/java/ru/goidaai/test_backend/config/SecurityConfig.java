@@ -47,7 +47,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Публичные эндпоинты
                 .requestMatchers("/error", "/uploads/**", "/h2-console/**").permitAll()
-                .requestMatchers("/api/auth/google", "/api/auth/dev").permitAll()
+                // Auth endpoints - публичные для входа
+                .requestMatchers("/api/auth/**").permitAll()
                 // Публичные API для курсов валют
                 .requestMatchers("/api/rates/**").permitAll()
                 // Все остальные требуют аутентификации
