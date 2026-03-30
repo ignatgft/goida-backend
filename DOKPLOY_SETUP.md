@@ -42,7 +42,7 @@ MULTIPART_MAX_FILE_SIZE=10MB
 MULTIPART_MAX_REQUEST_SIZE=20MB
 
 # Google OAuth (optional)
-GOOGLE_WEB_CLIENT_ID=<your-google-client-id>
+GOOGLE_WEB_CLIENT_ID=1021431144189-7tqhb0pare644pauck40j728vdos7dup.apps.googleusercontent.com
 GOOGLE_JWK_SET_URI=https://www.googleapis.com/oauth2/v3/certs
 
 # AI Provider (optional)
