@@ -36,7 +36,9 @@ public class DtoFactory {
             user.isEmailVerified(),
             user.getLastLoginAt(),
             user.getCreatedAt(),
-            user.getUpdatedAt()
+            user.getUpdatedAt(),
+            user.getLanguage(),
+            user.getTheme()
         );
     }
 

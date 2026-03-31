@@ -42,6 +42,12 @@ public class User extends BaseEntity {
     @Column(name = "last_login_at", nullable = false)
     private Instant lastLoginAt;
 
+    @Column(name = "language", nullable = false, length = 10)
+    private String language;
+
+    @Column(name = "theme", nullable = false, length = 20)
+    private String theme;
+
     @PrePersist
     public void applyDefaults() {
         if (baseCurrency == null || baseCurrency.isBlank()) {
@@ -128,5 +134,29 @@ public class User extends BaseEntity {
 
     public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getTheme() {
+        return theme;
+    }
+
+    public void setTheme(String theme) {
+        this.theme = theme;
+    }
+
+    public String getName() {
+        return fullName;
+    }
+
+    public void setName(String name) {
+        this.fullName = name;
     }
 }

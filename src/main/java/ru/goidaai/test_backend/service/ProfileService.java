@@ -41,4 +41,29 @@ public class ProfileService {
         userRepository.save(user);
         return new AvatarUploadResponse(avatarUrl);
     }
+
+    @Transactional
+    public void deleteAvatar(String userId) {
+        User user = currentUserService.require(userId);
+        if (user.getAvatarUrl() != null) {
+            storageService.deleteFile(user.getAvatarUrl());
+            user.setAvatarUrl(null);
+            userRepository.save(user);
+        }
+    }
+
+    @Transactional
+    public UserDTO updateProfile(String userId, String name, String baseCurrency,
+                                  Double monthlyBudget, String language, String theme) {
+        User user = currentUserService.require(userId);
+        
+        if (name != null) user.setName(name);
+        if (baseCurrency != null) user.setBaseCurrency(baseCurrency);
+        if (monthlyBudget != null) user.setMonthlyBudget(monthlyBudget);
+        if (language != null) user.setLanguage(language);
+        if (theme != null) user.setTheme(theme);
+        
+        userRepository.save(user);
+        return dtoFactory.toUserDto(user);
+    }
 }

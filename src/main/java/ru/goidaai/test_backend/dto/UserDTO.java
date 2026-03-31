@@ -15,6 +15,8 @@ public record UserDTO(
     boolean emailVerified,
     Instant lastLoginAt,
     Instant createdAt,
-    Instant updatedAt
+    Instant updatedAt,
+    String language,
+    String theme
 ) {
 }
