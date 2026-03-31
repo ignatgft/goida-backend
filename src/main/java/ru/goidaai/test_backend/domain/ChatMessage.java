@@ -2,15 +2,17 @@ package ru.goidaai.test_backend.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 
 /**
  * Доменная модель - Сообщение мессенджера
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,7 +23,7 @@ public class ChatMessage {
     private String recipientId;
     private String content;
     private MessageType type;
-    Boolean isRead;
+    private Boolean isRead;
     private Instant createdAt;
     private Instant readAt;
 }

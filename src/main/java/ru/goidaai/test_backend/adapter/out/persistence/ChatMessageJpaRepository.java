@@ -1,6 +1,6 @@
 package ru.goidaai.test_backend.adapter.out.persistence;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,35 +16,55 @@ import java.util.Optional;
  * Адаптер репозитория для ChatMessage
  */
 @Repository
-public interface ChatMessageJpaRepository extends JpaRepository<ChatMessageEntity, String>, ChatMessageRepositoryPort {
+@RequiredArgsConstructor
+public class ChatMessageJpaRepository implements ChatMessageRepositoryPort {
+
+    private final ChatMessageEntityRepository repository;
 
     @Override
-    default ChatMessage save(ChatMessage chatMessage) {
+    public ChatMessage save(ChatMessage chatMessage) {
         ChatMessageEntity entity = ChatMessageEntity.fromDomain(chatMessage);
-        ChatMessageEntity saved = super.save(entity);
+        ChatMessageEntity saved = repository.save(entity);
         return saved.toDomain();
     }
 
     @Override
-    default Optional<ChatMessage> findById(String id) {
-        return super.findById(id).map(ChatMessageEntity::toDomain);
+    public Optional<ChatMessage> findById(String id) {
+        return repository.findById(id).map(ChatMessageEntity::toDomain);
     }
 
     @Override
-    @Query("SELECT m FROM ChatMessageEntity m WHERE m.conversationId = :conversationId ORDER BY m.createdAt DESC")
-    List<ChatMessage> findByConversationId(String conversationId, @Param("limit") int limit, @Param("offset") int offset);
+    public List<ChatMessage> findByConversationId(String conversationId, int limit, int offset) {
+        return repository.findByConversationIdOrderByCreatedAtDesc(conversationId, limit, offset).stream()
+            .map(ChatMessageEntity::toDomain)
+            .toList();
+    }
 
-    @Override
-    @Query("SELECT m FROM ChatMessageEntity m WHERE m.recipientId = :recipientId AND m.isRead = false ORDER BY m.createdAt DESC")
-    List<ChatMessage> findUnreadMessages(String recipientId);
+    public List<ChatMessage> findUnreadMessages(String recipientId) {
+        return repository.findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(recipientId).stream()
+            .map(ChatMessageEntity::toDomain)
+            .toList();
+    }
 
-    @Override
     @Modifying
     @Query("UPDATE ChatMessageEntity m SET m.isRead = true, m.readAt = :readAt WHERE m.id = :messageId")
-    void markAsRead(@Param("messageId") String messageId, @Param("readAt") Instant readAt);
+    public void markAsRead(String messageId, Instant readAt) {
+        repository.markAsReadInternal(messageId, readAt);
+    }
 
-    @Override
-    default void markAsRead(String messageId) {
+    public void markAsRead(String messageId) {
         markAsRead(messageId, Instant.now());
     }
+}
+
+/**
+ * Внутренний интерфейс для Spring Data JPA
+ */
+interface ChatMessageEntityRepository extends org.springframework.data.jpa.repository.JpaRepository<ChatMessageEntity, String> {
+    List<ChatMessageEntity> findByConversationIdOrderByCreatedAtDesc(String conversationId, int limit, int offset);
+    List<ChatMessageEntity> findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(String recipientId);
+    
+    @Modifying
+    @Query("UPDATE ChatMessageEntity m SET m.isRead = true, m.readAt = :readAt WHERE m.id = :messageId")
+    void markAsReadInternal(@Param("messageId") String messageId, @Param("readAt") Instant readAt);
 }

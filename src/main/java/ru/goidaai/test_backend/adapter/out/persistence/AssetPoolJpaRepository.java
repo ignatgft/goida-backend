@@ -1,6 +1,6 @@
 package ru.goidaai.test_backend.adapter.out.persistence;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.goidaai.test_backend.application.port.out.AssetPoolRepositoryPort;
 import ru.goidaai.test_backend.domain.AssetPool;
@@ -12,37 +12,44 @@ import java.util.Optional;
  * Адаптер репозитория для AssetPool
  */
 @Repository
-public class AssetPoolJpaRepository extends JpaRepository<AssetPoolEntity, String> 
-    implements AssetPoolRepositoryPort {
+@RequiredArgsConstructor
+public class AssetPoolJpaRepository implements AssetPoolRepositoryPort {
+
+    private final AssetPoolEntityRepository repository;
 
     @Override
     public AssetPool save(AssetPool assetPool) {
         AssetPoolEntity entity = AssetPoolEntity.fromDomain(assetPool);
-        AssetPoolEntity saved = super.save(entity);
+        AssetPoolEntity saved = repository.save(entity);
         return saved.toDomain();
     }
 
     @Override
     public Optional<AssetPool> findById(String id) {
-        return super.findById(id).map(AssetPoolEntity::toDomain);
+        return repository.findById(id).map(AssetPoolEntity::toDomain);
     }
 
     @Override
     public List<AssetPool> findByUserId(String userId) {
-        return findAllByUserId(userId).stream()
+        return repository.findAllByUserId(userId).stream()
             .map(AssetPoolEntity::toDomain)
             .toList();
     }
 
     @Override
     public void deleteById(String id) {
-        super.deleteById(id);
+        repository.deleteById(id);
     }
 
     @Override
     public boolean existsById(String id) {
-        return super.existsById(id);
+        return repository.existsById(id);
     }
+}
 
+/**
+ * Внутренний интерфейс для Spring Data JPA
+ */
+interface AssetPoolEntityRepository extends org.springframework.data.jpa.repository.JpaRepository<AssetPoolEntity, String> {
     List<AssetPoolEntity> findAllByUserId(String userId);
 }

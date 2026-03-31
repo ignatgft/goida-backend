@@ -3,8 +3,9 @@ package ru.goidaai.test_backend.adapter.out.persistence;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.goidaai.test_backend.domain.WalletConnect;
 import ru.goidaai.test_backend.domain.WalletType;
 
@@ -18,7 +19,8 @@ import java.time.Instant;
     @Index(name = "idx_wallet_connect_user_id", columnList = "user_id"),
     @Index(name = "idx_wallet_connect_wallet_address", columnList = "wallet_address")
 })
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

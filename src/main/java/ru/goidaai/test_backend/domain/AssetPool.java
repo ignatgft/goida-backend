@@ -2,8 +2,9 @@ package ru.goidaai.test_backend.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -12,7 +13,8 @@ import java.time.Instant;
  * Доменная модель - Пул активов
  * Представляет актив с несколькими валютами (пул)
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

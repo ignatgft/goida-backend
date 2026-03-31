@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.goidaai.test_backend.application.port.out.AssetPoolRepositoryPort;
 import ru.goidaai.test_backend.application.port.out.PoolItemRepositoryPort;
 import ru.goidaai.test_backend.domain.AssetPool;
+import ru.goidaai.test_backend.domain.AssetPoolType;
 import ru.goidaai.test_backend.domain.PoolItem;
 
 import java.math.BigDecimal;

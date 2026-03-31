@@ -3,8 +3,9 @@ package ru.goidaai.test_backend.adapter.out.persistence;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.goidaai.test_backend.domain.Conversation;
 
 import java.time.Instant;
@@ -17,7 +18,8 @@ import java.time.Instant;
     @Index(name = "idx_conversations_user1_id", columnList = "user1_id"),
     @Index(name = "idx_conversations_user2_id", columnList = "user2_id")
 })
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,7 +35,7 @@ public class ConversationEntity {
     @Column(nullable = false, name = "user2_id")
     private String user2Id;
 
-    @Column(name = "last_message", columnLength = 500)
+    @Column(name = "last_message", length = 500)
     private String lastMessage;
 
     @Column(name = "last_message_at")

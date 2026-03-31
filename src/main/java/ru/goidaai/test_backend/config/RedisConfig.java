@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -40,23 +41,16 @@ public class RedisConfig {
     public RedisConnectionFactory redisConnectionFactory() {
         if (!redisEnabled) {
             // Возвращаем заглушку если Redis отключен
-            return new LettuceConnectionFactory(new LettuceConnectionFactory.StandaloneConfiguration() {{
-                setHostName("localhost");
-                setPort(6379);
-            }}) {
-                @Override
-                public void afterPropertiesSet() {
-                    // Не инициализируем соединение если Redis отключен
-                }
-            };
+            RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("localhost", 6379);
+            LettuceConnectionFactory factory = new LettuceConnectionFactory(config);
+            return factory;
         }
-        
-        LettuceConnectionFactory factory = new LettuceConnectionFactory();
-        factory.setHostName(redisHost);
-        factory.setPort(redisPort);
+
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
         if (redisPassword != null && !redisPassword.isEmpty()) {
-            factory.setPassword(redisPassword);
+            config.setPassword(redisPassword);
         }
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(config);
         return factory;
     }
 

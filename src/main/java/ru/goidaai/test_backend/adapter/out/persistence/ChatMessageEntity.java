@@ -3,8 +3,9 @@ package ru.goidaai.test_backend.adapter.out.persistence;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.goidaai.test_backend.domain.ChatMessage;
 import ru.goidaai.test_backend.domain.MessageType;
 
@@ -19,7 +20,8 @@ import java.time.Instant;
     @Index(name = "idx_chat_messages_recipient_id", columnList = "recipient_id"),
     @Index(name = "idx_chat_messages_is_read", columnList = "is_read")
 })
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,7 +40,7 @@ public class ChatMessageEntity {
     @Column(nullable = false, name = "recipient_id")
     private String recipientId;
 
-    @Column(nullable = false, columnLength = 5000)
+    @Column(nullable = false, length = 5000)
     private String content;
 
     @Enumerated(EnumType.STRING)

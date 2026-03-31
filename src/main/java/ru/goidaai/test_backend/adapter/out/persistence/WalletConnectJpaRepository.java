@@ -1,6 +1,6 @@
 package ru.goidaai.test_backend.adapter.out.persistence;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.goidaai.test_backend.application.port.out.WalletConnectRepositoryPort;
 import ru.goidaai.test_backend.domain.WalletConnect;
@@ -12,38 +12,46 @@ import java.util.Optional;
  * Адаптер репозитория для WalletConnect
  */
 @Repository
-public interface WalletConnectJpaRepository extends JpaRepository<WalletConnectEntity, String>, WalletConnectRepositoryPort {
+@RequiredArgsConstructor
+public class WalletConnectJpaRepository implements WalletConnectRepositoryPort {
 
-    Optional<WalletConnectEntity> findByUserIdAndWalletAddress(String userId, String walletAddress);
+    private final WalletConnectEntityRepository repository;
 
     @Override
-    default WalletConnect save(WalletConnect walletConnect) {
+    public WalletConnect save(WalletConnect walletConnect) {
         WalletConnectEntity entity = WalletConnectEntity.fromDomain(walletConnect);
-        WalletConnectEntity saved = super.save(entity);
+        WalletConnectEntity saved = repository.save(entity);
         return saved.toDomain();
     }
 
     @Override
-    default Optional<WalletConnect> findById(String id) {
-        return super.findById(id).map(WalletConnectEntity::toDomain);
+    public Optional<WalletConnect> findById(String id) {
+        return repository.findById(id).map(WalletConnectEntity::toDomain);
     }
 
     @Override
-    default Optional<WalletConnect> findByUserIdAndWalletAddress(String userId, String walletAddress) {
-        return findByUserIdAndWalletAddress(userId, walletAddress).map(WalletConnectEntity::toDomain);
+    public Optional<WalletConnect> findByUserIdAndWalletAddress(String userId, String walletAddress) {
+        return repository.findByUserIdAndWalletAddress(userId, walletAddress)
+            .map(WalletConnectEntity::toDomain);
     }
 
     @Override
-    default List<WalletConnect> findByUserId(String userId) {
-        return findAllByUserId(userId).stream()
+    public List<WalletConnect> findByUserId(String userId) {
+        return repository.findAllByUserId(userId).stream()
             .map(WalletConnectEntity::toDomain)
             .toList();
     }
 
     @Override
-    default void deleteById(String id) {
-        super.deleteById(id);
+    public void deleteById(String id) {
+        repository.deleteById(id);
     }
+}
 
+/**
+ * Внутренний интерфейс для Spring Data JPA
+ */
+interface WalletConnectEntityRepository extends org.springframework.data.jpa.repository.JpaRepository<WalletConnectEntity, String> {
+    Optional<WalletConnectEntity> findByUserIdAndWalletAddress(String userId, String walletAddress);
     List<WalletConnectEntity> findAllByUserId(String userId);
 }

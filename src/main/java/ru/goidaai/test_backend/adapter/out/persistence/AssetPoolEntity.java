@@ -3,8 +3,9 @@ package ru.goidaai.test_backend.adapter.out.persistence;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.goidaai.test_backend.domain.AssetPool;
 import ru.goidaai.test_backend.domain.AssetPoolType;
 
@@ -18,7 +19,8 @@ import java.time.Instant;
 @Table(name = "asset_pools", indexes = {
     @Index(name = "idx_asset_pools_user_id", columnList = "user_id")
 })
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

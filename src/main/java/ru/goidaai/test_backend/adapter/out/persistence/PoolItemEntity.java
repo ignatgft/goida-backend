@@ -3,8 +3,9 @@ package ru.goidaai.test_backend.adapter.out.persistence;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import ru.goidaai.test_backend.domain.PoolItem;
 
 import java.math.BigDecimal;
@@ -17,7 +18,8 @@ import java.time.Instant;
 @Table(name = "pool_items", indexes = {
     @Index(name = "idx_pool_items_pool_id", columnList = "pool_id")
 })
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
