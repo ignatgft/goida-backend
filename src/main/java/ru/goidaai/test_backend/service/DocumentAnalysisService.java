@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.goidaai.test_backend.dto.DocumentAnalysisResult;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,36 +18,34 @@ import java.util.regex.*;
 
 /**
  * Сервис для анализа документов (чеки, квитанции, скриншоты банков)
- * Использует OCR и паттерны для извлечения данных
+ * Использует паттерны для извлечения данных
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class DocumentAnalysisService {
 
-    private final GroqClient groqClient;
-
-    @Value("${app.ai.provider:groq}")
+    @Value("${app.ai.provider:mock}")
     private String aiProvider;
 
     // Паттерны для определения валют
     private static final Map<String, String> CURRENCY_PATTERNS = Map.ofEntries(
-        Map.entry("USD|\\$|US\\$", "USD"),
+        Map.entry("USD|\\$|US[ ]?\\$", "USD"),
         Map.entry("EUR|€|EURO", "EUR"),
-        Map.entry("RUB|₽|RUB|руб", "RUB"),
-        Map.entry("KZT|₸|KZT", "KZT"),
-        Map.entry("GBP|£|GBP", "GBP"),
-        Map.entry("JPY|¥|JPY", "JPY"),
-        Map.entry("CNY|¥|CNY", "CNY"),
-        Map.entry("CHF|CHF", "CHF"),
-        Map.entry("BTC|₿|BTC", "BTC"),
-        Map.entry("ETH|Ξ|ETH", "ETH"),
-        Map.entry("USDT|USDT", "USDT")
+        Map.entry("RUB|₽|RUB|руб\\.?|рублей", "RUB"),
+        Map.entry("KZT|₸|KZT|тенге", "KZT"),
+        Map.entry("GBP|£|GBP|sterling", "GBP"),
+        Map.entry("JPY|¥|JPY|yen", "JPY"),
+        Map.entry("CNY|¥|CNY|yuan", "CNY"),
+        Map.entry("CHF|CHF|franc", "CHF"),
+        Map.entry("BTC|₿|BTC|bitcoin", "BTC"),
+        Map.entry("ETH|Ξ|ETH|ethereum", "ETH"),
+        Map.entry("USDT|USDT|tether", "USDT")
     );
 
     // Паттерны для сумм
     private static final Pattern AMOUNT_PATTERN = Pattern.compile(
-        "(?:total|сумма|итого|amount|всего)[:\\s]*([\\d\\s,.]+)",
+        "(?:total|сумма|итого|amount|всего|к[ ]?оплате)[:\\s]*([\\d\\s,.]+)",
         Pattern.CASE_INSENSITIVE
     );
 
@@ -57,14 +53,15 @@ public class DocumentAnalysisService {
     private static final List<Pattern> DATE_PATTERNS = List.of(
         Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{4})"),
         Pattern.compile("(\\d{4}-\\d{2}-\\d{2})"),
-        Pattern.compile("(\\d{2}/\\d{2}/\\d{4})")
+        Pattern.compile("(\\d{2}/\\d{2}/\\d{4})"),
+        Pattern.compile("(\\d{2}\\.\\d{2}\\.\\d{2})")
     );
 
     /**
      * Анализ загруженного документа
      */
     public DocumentAnalysisResult analyzeDocument(MultipartFile file) throws IOException {
-        String fileName = file.getOriginalFilename();
+        String fileName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown";
         String fileType = file.getContentType();
         long fileSize = file.getSize();
 
@@ -73,8 +70,8 @@ public class DocumentAnalysisService {
         // Извлекаем текст из документа
         String extractedText = extractTextFromFile(file, fileType);
 
-        // Анализируем текст с помощью ИИ
-        return analyzeWithAI(extractedText, fileName, fileType, fileSize);
+        // Анализируем текст
+        return analyzeText(extractedText, fileName, fileType, fileSize);
     }
 
     /**
@@ -88,7 +85,9 @@ public class DocumentAnalysisService {
         if (fileType.contains("pdf")) {
             return extractTextFromPDF(file);
         } else if (fileType.contains("image")) {
-            return extractTextFromImage(file);
+            // В production: использовать Tesseract OCR или Google Vision
+            log.warn("OCR для изображений не настроен. Возвращаем пустой текст.");
+            return "";
         } else {
             throw new IOException("Неподдерживаемый тип файла: " + fileType);
         }
@@ -100,31 +99,19 @@ public class DocumentAnalysisService {
     private String extractTextFromPDF(MultipartFile file) throws IOException {
         try (PDDocument document = PDDocument.load(file.getInputStream())) {
             PDFTextStripper stripper = new PDFTextStripper();
-            return stripper.getText(document);
+            String text = stripper.getText(document);
+            log.info("Извлечено {} символов из PDF", text.length());
+            return text;
         }
     }
 
     /**
-     * Извлечение текста из изображения (OCR)
-     * В production здесь должна быть интеграция с Tesseract или Google Vision
+     * Анализ текста
      */
-    private String extractTextFromImage(MultipartFile file) throws IOException {
-        BufferedImage image = ImageIO.read(file.getInputStream());
-        
-        // В production: использовать Tesseract OCR или Google Cloud Vision
-        // Для демонстрации возвращаем заглушку
-        log.warn("OCR не настроен. В production используйте Tesseract или Google Cloud Vision");
-        
-        // Здесь должна быть реальная OCR обработка
-        // Для примера возвращаем пустой текст
-        return "";
-    }
+    private DocumentAnalysisResult analyzeText(String text, String fileName, 
+                                                String fileType, long fileSize) {
+        log.debug("Анализ текста длиной {} символов", text != null ? text.length() : 0);
 
-    /**
-     * Анализ текста с помощью ИИ
-     */
-    private DocumentAnalysisResult analyzeWithAI(String text, String fileName, 
-                                                  String fileType, long fileSize) {
         // Определяем валюту
         String currency = detectCurrency(text);
 
@@ -140,12 +127,6 @@ public class DocumentAnalysisService {
         // Извлекаем название мерчанта
         String merchantName = extractMerchantName(text);
 
-        // Формируем запрос к ИИ для детального анализа
-        String aiAnalysis = analyzeWithGroq(text, documentType, currency);
-
-        // Парсим ответ ИИ
-        Map<String, Object> parsedAnalysis = parseAIResponse(aiAnalysis);
-
         // Создаем результат
         return new DocumentAnalysisResult(
             documentType,
@@ -155,13 +136,13 @@ public class DocumentAnalysisService {
             currency,
             totalAmount,
             extractTaxAmount(text),
-            extractLineItems(parsedAnalysis),
+            List.of(), // line items пока не поддерживаются
             calculateConfidence(text),
-            text,
+            text != null ? text : "",
             generateWarnings(text, currency, totalAmount),
             new DocumentAnalysisResult.Metadata(
                 fileName,
-                fileType,
+                fileType != null ? fileType : "unknown",
                 fileSize,
                 1, // pageCount
                 null, // width
@@ -181,7 +162,8 @@ public class DocumentAnalysisService {
         String upperText = text.toUpperCase();
 
         for (Map.Entry<String, String> entry : CURRENCY_PATTERNS.entrySet()) {
-            if (Pattern.compile(entry.getKey()).matcher(upperText).find()) {
+            Pattern pattern = Pattern.compile(entry.getKey(), Pattern.CASE_INSENSITIVE);
+            if (pattern.matcher(upperText).find()) {
                 log.info("Обнаружена валюта: {}", entry.getValue());
                 return entry.getValue();
             }
@@ -247,15 +229,9 @@ public class DocumentAnalysisService {
             if (matcher.find()) {
                 try {
                     String dateStr = matcher.group(1);
-                    if (dateStr.contains(".")) {
-                        return LocalDateTime.parse(dateStr, 
-                            DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-                    } else if (dateStr.contains("-")) {
-                        return LocalDateTime.parse(dateStr, 
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    } else if (dateStr.contains("/")) {
-                        return LocalDateTime.parse(dateStr, 
-                            DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    DateTimeFormatter formatter = getDateFormat(dateStr);
+                    if (formatter != null) {
+                        return LocalDateTime.parse(dateStr, formatter);
                     }
                 } catch (Exception e) {
                     log.warn("Не удалось распарсить дату: {}", matcher.group(1));
@@ -263,6 +239,21 @@ public class DocumentAnalysisService {
             }
         }
 
+        return null;
+    }
+
+    private DateTimeFormatter getDateFormat(String dateStr) {
+        if (dateStr.contains(".")) {
+            if (dateStr.length() == 8) { // 01.01.24
+                return DateTimeFormatter.ofPattern("dd.MM.yy");
+            } else if (dateStr.length() == 10) { // 01.01.2024
+                return DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            }
+        } else if (dateStr.contains("-")) {
+            return DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        } else if (dateStr.contains("/")) {
+            return DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        }
         return null;
     }
 
@@ -302,7 +293,7 @@ public class DocumentAnalysisService {
 
         // Ищем название в первых строках
         String[] lines = text.split("\n");
-        if (lines.length > 0) {
+        if (lines.length > 0 && !lines[0].trim().isEmpty()) {
             return lines[0].trim();
         }
 
@@ -318,7 +309,7 @@ public class DocumentAnalysisService {
         }
 
         Pattern addressPattern = Pattern.compile(
-            "(?:ул\\.?|улица|пр\\.?|проспект|пер\\.?|переулок|д\\.?|дом).*",
+            "(?:ул\\.?|улица|пр\\.?|проспект|пер\\.?|переулок|д\\.?|дом|дом\\d).*",
             Pattern.CASE_INSENSITIVE
         );
         Matcher matcher = addressPattern.matcher(text);
@@ -354,21 +345,11 @@ public class DocumentAnalysisService {
     }
 
     /**
-     * Извлечение позиций документа
-     */
-    private List<DocumentAnalysisResult.LineItem> extractLineItems(
-        Map<String, Object> parsedAnalysis) {
-        // Парсим позиции из ответа ИИ
-        // В production здесь будет реальный парсинг JSON от ИИ
-        return new ArrayList<>();
-    }
-
-    /**
      * Расчет уверенности распознавания
      */
     private String calculateConfidence(String text) {
         if (text == null || text.isEmpty()) {
-            return "0.0";
+            return "0.1";
         }
 
         // Простая эвристика: чем больше текста, тем выше уверенность
@@ -387,61 +368,18 @@ public class DocumentAnalysisService {
         List<String> warnings = new ArrayList<>();
 
         if (text == null || text.isEmpty()) {
-            warnings.add("Текст не распознан. Возможно, низкое качество изображения.");
+            warnings.add("Текст не распознан. Возможно, низкое качество изображения или PDF.");
         }
 
         if (totalAmount.compareTo(BigDecimal.ZERO) == 0) {
             warnings.add("Не удалось определить сумму.");
         }
 
-        if ("UNKNOWN".equals(detectDocumentType(text))) {
+        String docType = detectDocumentType(text);
+        if ("UNKNOWN".equals(docType) || "OTHER".equals(docType)) {
             warnings.add("Не удалось определить тип документа.");
         }
 
         return warnings;
-    }
-
-    /**
-     * Анализ с помощью Groq AI
-     */
-    private String analyzeWithGroq(String text, String documentType, String currency) {
-        if (!"groq".equals(aiProvider)) {
-            return "{}";
-        }
-
-        String prompt = String.format("""
-            Проанализируй текст документа и извлеки следующие данные в формате JSON:
-            
-            Тип документа: %s
-            Валюта: %s
-            
-            Текст документа:
-            %s
-            
-            Верни JSON с полями:
-            - lineItems: массив позиций (name, quantity, unitPrice, totalPrice, category)
-            - merchantName: название организации
-            - merchantAddress: адрес
-            - documentDate: дата
-            - totalAmount: общая сумма
-            - taxAmount: сумма налога
-            
-            Только JSON, без дополнительного текста.
-            """, documentType, currency, text);
-
-        try {
-            return groqClient.chat(prompt, "Ты помощник для анализа финансовых документов", "ru");
-        } catch (Exception e) {
-            log.error("Ошибка при анализе через Groq: {}", e.getMessage());
-            return "{}";
-        }
-    }
-
-    /**
-     * Парсинг ответа ИИ
-     */
-    private Map<String, Object> parseAIResponse(String response) {
-        // В production здесь будет реальный JSON парсинг
-        return new HashMap<>();
     }
 }
