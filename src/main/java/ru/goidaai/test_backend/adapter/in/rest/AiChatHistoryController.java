@@ -149,9 +149,9 @@ public class AiChatHistoryController {
             return ResponseEntity.ok(response);
 
         } catch (IOException e) {
-            Map<String, String> error = new HashMap<>();
+            Map<String, Object> error = new HashMap<>();
             error.put("error", "Ошибка при обработке файла: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
+            return ResponseEntity.status(500).body(error);
         }
     }
 }

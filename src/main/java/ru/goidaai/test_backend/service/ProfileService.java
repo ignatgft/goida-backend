@@ -59,7 +59,8 @@ public class ProfileService {
         
         if (name != null) user.setName(name);
         if (baseCurrency != null) user.setBaseCurrency(baseCurrency);
-        if (monthlyBudget != null) user.setMonthlyBudget(monthlyBudget);
+        if (monthlyBudget != null) user.setMonthlyBudget(
+            java.math.BigDecimal.valueOf(monthlyBudget));
         if (language != null) user.setLanguage(language);
         if (theme != null) user.setTheme(theme);
         

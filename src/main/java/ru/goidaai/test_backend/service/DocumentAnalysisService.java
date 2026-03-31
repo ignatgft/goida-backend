@@ -430,7 +430,7 @@ public class DocumentAnalysisService {
             """, documentType, currency, text);
 
         try {
-            return groqClient.send(prompt);
+            return groqClient.chat(prompt, "Ты помощник для анализа финансовых документов", "ru");
         } catch (Exception e) {
             log.error("Ошибка при анализе через Groq: {}", e.getMessage());
             return "{}";

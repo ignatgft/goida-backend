@@ -53,7 +53,7 @@ public class SettingsController {
         @AuthenticationPrincipal Jwt jwt,
         @RequestParam MultipartFile file
     ) {
-        String avatarUrl = profileService.uploadAvatar(jwt.getSubject(), file);
+        String avatarUrl = profileService.uploadAvatar(jwt.getSubject(), file).avatarUrl();
         Map<String, String> response = new HashMap<>();
         response.put("avatarUrl", avatarUrl);
         return ResponseEntity.ok(response);

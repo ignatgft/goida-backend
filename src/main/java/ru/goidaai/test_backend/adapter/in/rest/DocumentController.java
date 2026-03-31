@@ -31,7 +31,7 @@ public class DocumentController {
      * Поддерживаются: PDF, PNG, JPG, JPEG
      */
     @PostMapping(value = "/analyze", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<DocumentAnalysisResult> analyzeDocument(
+    public ResponseEntity<?> analyzeDocument(
         @RequestParam("file") MultipartFile file,
         @AuthenticationPrincipal Jwt jwt
     ) {
@@ -45,16 +45,16 @@ public class DocumentController {
             boolean isSupported = contentType.contains("pdf") || 
                                   contentType.contains("image");
             if (!isSupported) {
-                Map<String, String> error = new HashMap<>();
+                Map<String, Object> error = new HashMap<>();
                 error.put("error", "Неподдерживаемый тип файла. Разрешены: PDF, PNG, JPG, JPEG");
-                return ResponseEntity.badRequest().body(null);
+                return ResponseEntity.badRequest().body(error);
             }
 
             // Проверка размера (макс 10MB)
             if (file.getSize() > 10 * 1024 * 1024) {
-                Map<String, String> error = new HashMap<>();
+                Map<String, Object> error = new HashMap<>();
                 error.put("error", "Файл слишком большой. Максимум 10MB");
-                return ResponseEntity.badRequest().body(null);
+                return ResponseEntity.badRequest().body(error);
             }
 
             // Анализ документа
@@ -64,9 +64,9 @@ public class DocumentController {
 
         } catch (IOException e) {
             log.error("Ошибка при анализе документа: {}", e.getMessage());
-            Map<String, String> error = new HashMap<>();
+            Map<String, Object> error = new HashMap<>();
             error.put("error", "Ошибка при обработке файла: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(null);
+            return ResponseEntity.status(500).body(error);
         }
     }
 
@@ -93,9 +93,9 @@ public class DocumentController {
 
         } catch (IOException e) {
             log.error("Ошибка при создании транзакции из документа: {}", e.getMessage());
-            Map<String, String> error = new HashMap<>();
+            Map<String, Object> error = new HashMap<>();
             error.put("error", "Ошибка: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(error);
+            return ResponseEntity.status(500).body(error);
         }
     }
 

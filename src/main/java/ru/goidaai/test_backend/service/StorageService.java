@@ -46,6 +46,22 @@ public class StorageService {
         return buildPublicUrl(folderName, filename);
     }
 
+    public void deleteFile(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            return;
+        }
+        try {
+            // Извлекаем имя файла из URL
+            String filename = filePath.substring(filePath.lastIndexOf('/') + 1);
+            Path file = uploadRoot.resolve("avatars").resolve(filename).normalize();
+            if (Files.exists(file)) {
+                Files.delete(file);
+            }
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to delete file", exception);
+        }
+    }
+
     private void validateImage(MultipartFile multipartFile) {
         if (multipartFile == null || multipartFile.isEmpty()) {
             throw new BadRequestException("Image file is required");
