@@ -23,8 +23,8 @@ services:
       RATES_PROVIDER: ${RATES_PROVIDER:-mock}
       EXCHANGE_API_KEY: ${EXCHANGE_API_KEY:-}
       DB_URL: jdbc:postgresql://${DB_HOST:-host.docker.internal}:${DB_PORT:-5432}/${POSTGRES_DB:-goida}
-      DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_USERNAME: ${DB_USERNAME:-${POSTGRES_USER:-postgres}}
+      DB_PASSWORD: ${DB_PASSWORD:-${POSTGRES_PASSWORD:-postgres}}
       JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
       FLYWAY_ENABLED: ${FLYWAY_ENABLED:-false}
       JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
