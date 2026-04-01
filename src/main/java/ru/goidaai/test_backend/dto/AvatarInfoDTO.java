@@ -2,7 +2,7 @@ package ru.goidaai.test_backend.dto;
 
 import java.math.BigDecimal;
 
-public class AvatarUploadResponse {
+public class AvatarInfoDTO {
 
     private String id;
     private String url;
@@ -11,12 +11,13 @@ public class AvatarUploadResponse {
     private Long fileSize;
     private Integer width;
     private Integer height;
-    private BigDecimal uploadTimestamp;
+    private Boolean isActive;
+    private BigDecimal uploadedAt;
 
-    public AvatarUploadResponse() {
+    public AvatarInfoDTO() {
     }
 
-    public AvatarUploadResponse(String id, String url, String fileName, String contentType, Long fileSize, Integer width, Integer height, BigDecimal uploadTimestamp) {
+    public AvatarInfoDTO(String id, String url, String fileName, String contentType, Long fileSize, Integer width, Integer height, Boolean isActive, BigDecimal uploadedAt) {
         this.id = id;
         this.url = url;
         this.fileName = fileName;
@@ -24,7 +25,8 @@ public class AvatarUploadResponse {
         this.fileSize = fileSize;
         this.width = width;
         this.height = height;
-        this.uploadTimestamp = uploadTimestamp;
+        this.isActive = isActive;
+        this.uploadedAt = uploadedAt;
     }
 
     public String getId() {
@@ -83,11 +85,19 @@ public class AvatarUploadResponse {
         this.height = height;
     }
 
-    public BigDecimal getUploadTimestamp() {
-        return uploadTimestamp;
+    public Boolean getIsActive() {
+        return isActive;
     }
 
-    public void setUploadTimestamp(BigDecimal uploadTimestamp) {
-        this.uploadTimestamp = uploadTimestamp;
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public BigDecimal getUploadedAt() {
+        return uploadedAt;
+    }
+
+    public void setUploadedAt(BigDecimal uploadedAt) {
+        this.uploadedAt = uploadedAt;
     }
 }

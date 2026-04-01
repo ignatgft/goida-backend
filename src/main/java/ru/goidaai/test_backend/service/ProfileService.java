@@ -39,7 +39,13 @@ public class ProfileService {
         String avatarUrl = storageService.storeImage(file, "avatars");
         user.setAvatarUrl(avatarUrl);
         userRepository.save(user);
-        return new AvatarUploadResponse(avatarUrl);
+        
+        AvatarUploadResponse response = new AvatarUploadResponse();
+        response.setUrl(avatarUrl);
+        response.setFileName(file.getOriginalFilename());
+        response.setContentType(file.getContentType());
+        response.setFileSize(file.getSize());
+        return response;
     }
 
     @Transactional
@@ -53,17 +59,28 @@ public class ProfileService {
     }
 
     @Transactional
-    public UserDTO updateProfile(String userId, String name, String baseCurrency,
-                                  Double monthlyBudget, String language, String theme) {
+    public UserDTO updateProfile(
+            String userId,
+            String name,
+            String baseCurrency,
+            Double monthlyBudget,
+            String language,
+            String theme,
+            Boolean emailNotifications,
+            Boolean pushNotifications,
+            String timezone) {
         User user = currentUserService.require(userId);
-        
+
         if (name != null) user.setName(name);
         if (baseCurrency != null) user.setBaseCurrency(baseCurrency);
         if (monthlyBudget != null) user.setMonthlyBudget(
             java.math.BigDecimal.valueOf(monthlyBudget));
         if (language != null) user.setLanguage(language);
         if (theme != null) user.setTheme(theme);
-        
+        if (emailNotifications != null) user.setEmailNotifications(emailNotifications);
+        if (pushNotifications != null) user.setPushNotifications(pushNotifications);
+        if (timezone != null) user.setTimezone(timezone);
+
         userRepository.save(user);
         return dtoFactory.toUserDto(user);
     }

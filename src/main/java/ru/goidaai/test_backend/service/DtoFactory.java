@@ -38,7 +38,10 @@ public class DtoFactory {
             user.getCreatedAt(),
             user.getUpdatedAt(),
             user.getLanguage(),
-            user.getTheme()
+            user.getTheme(),
+            user.getEmailNotifications(),
+            user.getPushNotifications(),
+            user.getTimezone()
         );
     }
 
@@ -119,15 +122,15 @@ public class DtoFactory {
     }
 
     public ChatMessageDTO toChatMessageDto(ChatHistory chatHistory) {
-        return new ChatMessageDTO(
-            chatHistory.getResponse(),
-            "assistant",
-            chatHistory.getCreatedAt(),
-            chatHistory.getMessage(),
-            chatHistory.getResponse(),
-            chatHistory.getProvider(),
-            chatHistory.getModel(),
-            chatHistory.getCreatedAt()
-        );
+        ChatMessageDTO dto = new ChatMessageDTO();
+        dto.setContent(chatHistory.getMessage());
+        dto.setType("TEXT");
+        dto.setSenderId(chatHistory.getUser().getId());
+        dto.setSenderName(chatHistory.getUser().getFullName());
+        dto.setReceiverId(chatHistory.getUser().getId());
+        dto.setReceiverName(chatHistory.getUser().getFullName());
+        dto.setIsRead(true);
+        dto.setSentAt(chatHistory.getCreatedAt());
+        return dto;
     }
 }

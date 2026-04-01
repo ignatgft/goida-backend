@@ -48,6 +48,15 @@ public class User extends BaseEntity {
     @Column(name = "theme", nullable = false, length = 20)
     private String theme;
 
+    @Column(name = "email_notifications", nullable = false)
+    private Boolean emailNotifications;
+
+    @Column(name = "push_notifications", nullable = false)
+    private Boolean pushNotifications;
+
+    @Column(name = "timezone", nullable = false, length = 64)
+    private String timezone;
+
     @PrePersist
     public void applyDefaults() {
         if (baseCurrency == null || baseCurrency.isBlank()) {
@@ -61,6 +70,12 @@ public class User extends BaseEntity {
         }
         if (lastLoginAt == null) {
             lastLoginAt = Instant.now();
+        }
+        if (emailNotifications == null) {
+            emailNotifications = true;
+        }
+        if (pushNotifications == null) {
+            pushNotifications = true;
         }
     }
 
@@ -150,6 +165,30 @@ public class User extends BaseEntity {
 
     public void setTheme(String theme) {
         this.theme = theme;
+    }
+
+    public Boolean getEmailNotifications() {
+        return emailNotifications;
+    }
+
+    public void setEmailNotifications(Boolean emailNotifications) {
+        this.emailNotifications = emailNotifications;
+    }
+
+    public Boolean getPushNotifications() {
+        return pushNotifications;
+    }
+
+    public void setPushNotifications(Boolean pushNotifications) {
+        this.pushNotifications = pushNotifications;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
     }
 
     public String getName() {

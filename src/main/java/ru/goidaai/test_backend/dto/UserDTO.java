@@ -17,6 +17,9 @@ public record UserDTO(
     Instant createdAt,
     Instant updatedAt,
     String language,
-    String theme
+    String theme,
+    Boolean emailNotifications,
+    Boolean pushNotifications,
+    String timezone
 ) {
 }
