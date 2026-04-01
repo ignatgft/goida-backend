@@ -25,6 +25,7 @@ import ru.goidaai.test_backend.model.enums.TransactionKind;
 import ru.goidaai.test_backend.model.enums.TransactionSourceType;
 import ru.goidaai.test_backend.repository.ReceiptRepository;
 import ru.goidaai.test_backend.repository.TransactionRepository;
+import ru.goidaai.test_backend.service.AssetsService;
 import ru.goidaai.test_backend.service.transaction.CursorEncoder;
 import ru.goidaai.test_backend.service.transaction.ReceiptLinkingService;
 import ru.goidaai.test_backend.service.transaction.TransactionBalanceService;

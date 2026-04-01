@@ -1,4 +1,4 @@
-package ru.goidaai.test_backend.controller;
+package ru.goidaai.test_backend.adapter.in.rest;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

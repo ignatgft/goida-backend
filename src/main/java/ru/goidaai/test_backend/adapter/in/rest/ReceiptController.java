@@ -1,4 +1,4 @@
-package ru.goidaai.test_backend.controller;
+package ru.goidaai.test_backend.adapter.in.rest;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;

@@ -14,22 +14,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.stereotype.Component;
 import ru.goidaai.test_backend.repository.ReceiptRepository;
 import ru.goidaai.test_backend.repository.TransactionRepository;
 import ru.goidaai.test_backend.repository.UserRepository;
@@ -37,9 +35,8 @@ import ru.goidaai.test_backend.security.GoogleTokenVerifier;
 import ru.goidaai.test_backend.security.GoogleUser;
 import ru.goidaai.test_backend.service.ReceiptOcrProvider;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@ContextConfiguration(classes = {TestBackendApplication.class, ApiIntegrationTest.TestConfig.class})
 @Transactional
 class ApiIntegrationTest {
 
@@ -70,22 +67,6 @@ class ApiIntegrationTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
             .apply(springSecurity())
             .build();
-
-        receiptOcrProvider.setResult(new ReceiptOcrProvider.ReceiptExtractionResult(
-            "Mega Store",
-            new BigDecimal("19.90"),
-            "USD",
-            Instant.parse("2026-03-27T10:15:00Z"),
-            java.util.List.of(new ru.goidaai.test_backend.dto.ReceiptItemDTO(
-                "Coffee",
-                "Coffee",
-                BigDecimal.ONE,
-                new BigDecimal("19.90"),
-                new BigDecimal("19.90"),
-                new BigDecimal("19.90")
-            )),
-            "mock-ocr"
-        ));
     }
 
     @Test
@@ -393,22 +374,8 @@ class ApiIntegrationTest {
             .andExpect(status().isCreated());
     }
 
-    @TestConfiguration
-    static class TestConfig {
-
-        @Bean
-        @Primary
-        StubGoogleTokenVerifier googleTokenVerifier() {
-            return new StubGoogleTokenVerifier();
-        }
-
-        @Bean
-        @Primary
-        StubReceiptOcrProvider receiptOcrProvider() {
-            return new StubReceiptOcrProvider();
-        }
-    }
-
+    @org.springframework.context.annotation.Primary
+    @org.springframework.stereotype.Component
     static class StubGoogleTokenVerifier implements GoogleTokenVerifier {
 
         private GoogleUser googleUser = new GoogleUser(
@@ -429,6 +396,8 @@ class ApiIntegrationTest {
         }
     }
 
+    @Component
+    @org.springframework.context.annotation.Primary
     static class StubReceiptOcrProvider implements ReceiptOcrProvider {
 
         private ReceiptExtractionResult result;
@@ -439,7 +408,14 @@ class ApiIntegrationTest {
 
         @Override
         public ReceiptExtractionResult extract(org.springframework.web.multipart.MultipartFile multipartFile) {
-            return result;
+            return result != null ? result : new ReceiptExtractionResult(
+                "Test Store",
+                new BigDecimal("10.00"),
+                "USD",
+                Instant.now(),
+                List.of(),
+                "mock"
+            );
         }
     }
 }

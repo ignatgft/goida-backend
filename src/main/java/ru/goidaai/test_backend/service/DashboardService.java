@@ -19,6 +19,7 @@ import ru.goidaai.test_backend.model.User;
 import ru.goidaai.test_backend.model.enums.PeriodFilter;
 import ru.goidaai.test_backend.model.enums.TransactionKind;
 import ru.goidaai.test_backend.repository.TransactionRepository;
+import ru.goidaai.test_backend.service.AssetsService;
 import ru.goidaai.test_backend.service.analytics.AnalyticsService;
 
 /**

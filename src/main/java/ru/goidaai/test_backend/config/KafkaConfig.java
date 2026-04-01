@@ -70,7 +70,7 @@ public class KafkaConfig {
 
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
-        JsonDeserializer<Object> deserializer = new JsonDeserializer<>();
+        JsonDeserializer<Object> deserializer = new JsonDeserializer<>(Object.class);
         deserializer.addTrustedPackages("*");
         return new DefaultKafkaConsumerFactory<>(
             consumerConfigs(),
