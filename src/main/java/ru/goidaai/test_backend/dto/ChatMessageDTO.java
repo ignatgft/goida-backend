@@ -17,6 +17,8 @@ public class ChatMessageDTO {
     private String fileContentType;
     private Boolean isRead;
     private Instant sentAt;
+    private String replyToId;
+    private String replyToContent;
 
     public ChatMessageDTO() {
     }
@@ -123,5 +125,21 @@ public class ChatMessageDTO {
 
     public void setSentAt(Instant sentAt) {
         this.sentAt = sentAt;
+    }
+
+    public String getReplyToId() {
+        return replyToId;
+    }
+
+    public void setReplyToId(String replyToId) {
+        this.replyToId = replyToId;
+    }
+
+    public String getReplyToContent() {
+        return replyToContent;
+    }
+
+    public void setReplyToContent(String replyToContent) {
+        this.replyToContent = replyToContent;
     }
 }

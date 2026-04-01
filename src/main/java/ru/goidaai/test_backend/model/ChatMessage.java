@@ -22,6 +22,14 @@ public class ChatMessage extends BaseEntity {
     @JoinColumn(name = "receiver_id", nullable = false)
     private User receiver;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chat_session_id")
+    private ChatSession chatSession;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reply_to_id")
+    private ChatMessage replyTo;
+
     @Column(nullable = false, length = 2000)
     private String content;
 
@@ -61,6 +69,22 @@ public class ChatMessage extends BaseEntity {
 
     public void setReceiver(User receiver) {
         this.receiver = receiver;
+    }
+
+    public ChatSession getChatSession() {
+        return chatSession;
+    }
+
+    public void setChatSession(ChatSession chatSession) {
+        this.chatSession = chatSession;
+    }
+
+    public ChatMessage getReplyTo() {
+        return replyTo;
+    }
+
+    public void setReplyTo(ChatMessage replyTo) {
+        this.replyTo = replyTo;
     }
 
     public String getContent() {
@@ -123,6 +147,8 @@ public class ChatMessage extends BaseEntity {
         TEXT,
         IMAGE,
         FILE,
-        SYSTEM
+        SYSTEM,
+        VOICE,
+        VIDEO
     }
 }

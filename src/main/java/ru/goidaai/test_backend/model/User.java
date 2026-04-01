@@ -57,6 +57,9 @@ public class User extends BaseEntity {
     @Column(name = "timezone", nullable = false, length = 64)
     private String timezone;
 
+    @Column(name = "username", nullable = false, unique = true, length = 64)
+    private String username;
+
     @PrePersist
     public void applyDefaults() {
         if (baseCurrency == null || baseCurrency.isBlank()) {
@@ -77,6 +80,16 @@ public class User extends BaseEntity {
         if (pushNotifications == null) {
             pushNotifications = true;
         }
+        if (username == null || username.isBlank()) {
+            username = generateUsernameFromEmail();
+        }
+    }
+
+    private String generateUsernameFromEmail() {
+        if (email == null || !email.contains("@")) {
+            return "user_" + getId().substring(0, 8);
+        }
+        return email.split("@")[0].toLowerCase().replaceAll("[^a-z0-9]", "_");
     }
 
     public String getEmail() {
@@ -189,6 +202,14 @@ public class User extends BaseEntity {
 
     public void setTimezone(String timezone) {
         this.timezone = timezone;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getName() {

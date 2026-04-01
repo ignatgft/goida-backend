@@ -29,6 +29,7 @@ public class DtoFactory {
             user.getId(),
             user.getEmail(),
             user.getFullName(),
+            user.getUsername(),
             user.getAvatarUrl(),
             user.getBaseCurrency(),
             user.getMonthlyBudget(),

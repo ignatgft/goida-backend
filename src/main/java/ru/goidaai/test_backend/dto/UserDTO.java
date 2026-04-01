@@ -8,6 +8,7 @@ public record UserDTO(
     String id,
     String email,
     String fullName,
+    String username,
     String avatarUrl,
     String baseCurrency,
     BigDecimal monthlyBudget,
