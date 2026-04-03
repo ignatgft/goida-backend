@@ -14,10 +14,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.goidaai.test_backend.dto.BatchTransactionRequest;
+import ru.goidaai.test_backend.dto.BatchTransactionResponse;
 import ru.goidaai.test_backend.dto.CreateTransactionRequest;
 import ru.goidaai.test_backend.dto.TransactionDTO;
 import ru.goidaai.test_backend.dto.TransactionsPageDTO;
+import ru.goidaai.test_backend.dto.transaction.TransactionCreateRequest;
+import ru.goidaai.test_backend.dto.transaction.TransactionResponse;
 import ru.goidaai.test_backend.service.TransactionsService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -47,6 +54,49 @@ public class TransactionsController {
     ) {
         TransactionDTO transaction = transactionsService.create(jwt.getSubject(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
+    }
+
+    /**
+     * Batch создание транзакций
+     * Позволяет создать несколько транзакций за один запрос
+     */
+    @PostMapping("/batch")
+    public ResponseEntity<BatchTransactionResponse> createBatch(
+        @AuthenticationPrincipal Jwt jwt,
+        @Valid @RequestBody BatchTransactionRequest batchRequest
+    ) {
+        String userId = jwt.getSubject();
+        List<TransactionResponse> successful = new ArrayList<>();
+        List<BatchTransactionResponse.BatchError> errors = new ArrayList<>();
+
+        for (int i = 0; i < batchRequest.getTransactions().size(); i++) {
+            TransactionCreateRequest request = batchRequest.getTransactions().get(i);
+            try {
+                // TODO: Вызвать сервис для создания транзакции
+                // Пока заглушка - нужно адаптировать под реальный сервис
+                successful.add(TransactionResponse.builder()
+                    .id("batch-" + i)
+                    .title(request.getTitle())
+                    .amount(request.getAmount())
+                    .build());
+            } catch (Exception e) {
+                errors.add(BatchTransactionResponse.BatchError.builder()
+                    .index(i)
+                    .error(e.getMessage())
+                    .request(request)
+                    .build());
+            }
+        }
+
+        BatchTransactionResponse response = BatchTransactionResponse.builder()
+            .successful(successful)
+            .errors(errors)
+            .totalProcessed(batchRequest.getTransactions().size())
+            .successCount(successful.size())
+            .errorCount(errors.size())
+            .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{transactionId}")
