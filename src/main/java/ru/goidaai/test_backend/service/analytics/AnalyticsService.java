@@ -60,6 +60,13 @@ public class AnalyticsService {
     public List<CategorySpendingDTO> getSpendingByCategory(String userId, PeriodFilter period) {
         User user = currentUserService.require(userId);
         List<Transaction> expenses = transactionRepository.findAll(expensesSpec(userId, period));
+        return getSpendingByCategory(user, expenses);
+    }
+
+    /**
+     * ОПТИМИЗИРОВАНО: Статистика с предзагруженными транзакциями
+     */
+    public List<CategorySpendingDTO> getSpendingByCategory(User user, List<Transaction> expenses) {
 
         // Группировка по категориям с конвертацией в базовую валюту
         Map<String, List<Transaction>> byCategory = expenses.stream()
@@ -110,6 +117,13 @@ public class AnalyticsService {
     public SpendingTrendDTO getSpendingTrend(String userId, PeriodFilter period) {
         User user = currentUserService.require(userId);
         List<Transaction> expenses = transactionRepository.findAll(expensesSpec(userId, period));
+        return getSpendingTrend(user, expenses, period);
+    }
+
+    /**
+     * ОПТИМИЗИРОВАНО: Тренд расходов с предзагруженными транзакциями
+     */
+    public SpendingTrendDTO getSpendingTrend(User user, List<Transaction> expenses, PeriodFilter period) {
 
         // Группировка по дням
         Map<LocalDate, List<Transaction>> byDate = expenses.stream()
@@ -163,6 +177,13 @@ public class AnalyticsService {
     public BudgetStatusDTO getBudgetStatus(String userId, PeriodFilter period) {
         User user = currentUserService.require(userId);
         List<Transaction> expenses = transactionRepository.findAll(expensesSpec(userId, period));
+        return getBudgetStatus(user, expenses);
+    }
+
+    /**
+     * ОПТИМИЗИРОВАНО: Статус бюджета с предзагруженными транзакциями
+     */
+    public BudgetStatusDTO getBudgetStatus(User user, List<Transaction> expenses) {
 
         BigDecimal spent = expenses.stream()
             .map(t -> ratesService.convertAmount(t.getAmount(), t.getCurrency(), user.getBaseCurrency()))

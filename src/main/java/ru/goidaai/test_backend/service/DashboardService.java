@@ -52,18 +52,22 @@ public class DashboardService {
     }
 
     /**
-     * Получить расширенную сводку дашборда
+     * Получить расширенную сводку дашборда (ОПТИМИЗИРОВАНО)
+     * Было: 4 отдельных запроса транзакций
+     * Стало: 1 запрос, переиспользуется для всей аналитики
      */
     @Transactional(readOnly = true)
     public DashboardOverviewDTO getOverview(String userId, String rawPeriod) {
         User user = currentUserService.require(userId);
         PeriodFilter period = PeriodFilter.from(rawPeriod);
 
-        // Базовые данные
+        // Базовые данные (кэшируется через @Cacheable в AssetsService)
         List<AssetDTO> assets = assetsService.listForUser(user);
+
+        // ОДИН запрос транзакций - переиспользуем для всей аналитики
+        List<Transaction> expenses = transactionRepository.findAll(expensesSpec(userId, period));
         
         // Расходы за период
-        List<Transaction> expenses = transactionRepository.findAll(expensesSpec(userId, period));
         BigDecimal spent = expenses.stream()
             .map(t -> ratesService.convertAmount(t.getAmount(), t.getCurrency(), user.getBaseCurrency()))
             .reduce(BigDecimal.ZERO, BigDecimal::add)
@@ -72,10 +76,10 @@ public class DashboardService {
         BigDecimal budget = period.budgetFromMonthly(user.getMonthlyBudget());
         SpendingDTO spending = new SpendingDTO(spent, budget);
 
-        // Аналитика
-        BudgetStatusDTO budgetStatus = analyticsService.getBudgetStatus(userId, period);
-        List<CategorySpendingDTO> categoryBreakdown = analyticsService.getSpendingByCategory(userId, period);
-        SpendingTrendDTO trend = analyticsService.getSpendingTrend(userId, period);
+        // Аналитика с передачей предзагруженных данных (без повторных запросов)
+        BudgetStatusDTO budgetStatus = analyticsService.getBudgetStatus(user, expenses);
+        List<CategorySpendingDTO> categoryBreakdown = analyticsService.getSpendingByCategory(user, expenses);
+        SpendingTrendDTO trend = analyticsService.getSpendingTrend(user, expenses, period);
 
         // Проценты расходов
         var spendingPercentages = categoryBreakdown.stream()
