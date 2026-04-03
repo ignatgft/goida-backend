@@ -27,6 +27,7 @@ public class TokenRefreshService {
     private final JwtDecoder jwtDecoder;
     private final AppProperties appProperties;
     private final UserRepository userRepository;
+    private final DtoFactory dtoFactory;
     private final Clock clock;
 
     public TokenRefreshService(
@@ -34,12 +35,14 @@ public class TokenRefreshService {
         JwtDecoder jwtDecoder,
         AppProperties appProperties,
         UserRepository userRepository,
+        DtoFactory dtoFactory,
         Clock clock
     ) {
         this.jwtEncoder = jwtEncoder;
         this.jwtDecoder = jwtDecoder;
         this.appProperties = appProperties;
         this.userRepository = userRepository;
+        this.dtoFactory = dtoFactory;
         this.clock = clock;
     }
 
@@ -53,8 +56,6 @@ public class TokenRefreshService {
             Jwt decodedToken = jwtDecoder.decode(oldToken);
             
             String userId = decodedToken.getSubject();
-            String email = decodedToken.getClaim("email");
-            String fullName = decodedToken.getClaim("fullName");
 
             // Проверяем что пользователь существует
             User user = userRepository.findById(userId)
@@ -69,22 +70,15 @@ public class TokenRefreshService {
                 .issuedAt(issuedAt)
                 .expiresAt(expiresAt)
                 .subject(userId)
-                .claim("email", email)
-                .claim("fullName", fullName)
+                .claim("email", user.getEmail())
+                .claim("fullName", user.getFullName())
                 .build();
 
             String newAccessToken = jwtEncoder.encode(
                 JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims)
             ).getTokenValue();
 
-            UserDTO userDTO = new UserDTO(
-                user.getId(),
-                user.getEmail(),
-                user.getFullName(),
-                user.getAvatarUrl(),
-                user.getBaseCurrency().getCode(),
-                user.getMonthlyBudget()
-            );
+            UserDTO userDTO = dtoFactory.toUserDto(user);
 
             return new AuthResponse("Bearer", newAccessToken, appProperties.getAuth().getTokenTtlSeconds(), userDTO);
         } catch (Exception e) {
