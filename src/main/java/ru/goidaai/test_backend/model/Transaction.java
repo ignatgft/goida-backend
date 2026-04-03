@@ -22,7 +22,8 @@ import ru.goidaai.test_backend.model.enums.TransactionSourceType;
     indexes = {
         @Index(name = "idx_transactions_user_id", columnList = "user_id"),
         @Index(name = "idx_transactions_user_occurred_at", columnList = "user_id, occurred_at"),
-        @Index(name = "idx_transactions_user_category", columnList = "user_id, category")
+        @Index(name = "idx_transactions_user_category", columnList = "user_id, category"),
+        @Index(name = "idx_transactions_user_kind_occurred", columnList = "user_id, kind, occurred_at")
     }
 )
 public class Transaction extends BaseEntity {
