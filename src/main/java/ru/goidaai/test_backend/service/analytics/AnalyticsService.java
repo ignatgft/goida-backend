@@ -111,6 +111,75 @@ public class AnalyticsService {
     }
 
     /**
+     * Получить топ-N самых больших трат
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getTopExpenses(String userId, PeriodFilter period, int limit) {
+        User user = currentUserService.require(userId);
+        List<Transaction> expenses = transactionRepository.findAll(expensesSpec(userId, period));
+        
+        return expenses.stream()
+            .sorted((a, b) -> b.getAmount().compareTo(a.getAmount()))
+            .limit(limit)
+            .map(t -> Map.<String, Object>of(
+                "title", t.getTitle() != null ? t.getTitle() : "Без названия",
+                "amount", t.getAmount(),
+                "currency", t.getCurrency(),
+                "category", t.getCategory(),
+                "date", t.getOccurredAt()
+            ))
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Получить средний чек
+     */
+    @Transactional(readOnly = true)
+    public BigDecimal getAverageCheck(String userId, PeriodFilter period) {
+        User user = currentUserService.require(userId);
+        List<Transaction> expenses = transactionRepository.findAll(expensesSpec(userId, period));
+        
+        if (expenses.isEmpty()) return BigDecimal.ZERO;
+        
+        BigDecimal total = expenses.stream()
+            .map(t -> ratesService.convertAmount(t.getAmount(), t.getCurrency(), user.getBaseCurrency()))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+        return total.divide(BigDecimal.valueOf(expenses.size()), 2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Получить детальную аналитику по категории
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getCategoryDetails(String userId, String category, PeriodFilter period) {
+        User user = currentUserService.require(userId);
+        Specification<Transaction> spec = expensesSpec(userId, period).and(
+            (root, query, cb) -> cb.equal(root.get("category"), category)
+        );
+        List<Transaction> expenses = transactionRepository.findAll(spec);
+        
+        BigDecimal total = expenses.stream()
+            .map(t -> ratesService.convertAmount(t.getAmount(), t.getCurrency(), user.getBaseCurrency()))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+            
+        BigDecimal avg = expenses.isEmpty() ? BigDecimal.ZERO 
+            : total.divide(BigDecimal.valueOf(expenses.size()), 2, RoundingMode.HALF_UP);
+            
+        return Map.of(
+            "category", category,
+            "total", total,
+            "average", avg,
+            "count", expenses.size(),
+            "transactions", expenses.stream().map(t -> Map.of(
+                "title", t.getTitle(),
+                "amount", t.getAmount(),
+                "date", t.getOccurredAt()
+            )).collect(Collectors.toList())
+        );
+    }
+
+    /**
      * Получить тренд расходов по дням
      */
     @Transactional(readOnly = true)
