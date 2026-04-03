@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.goidaai.test_backend.dto.transaction.TransactionResponse;
 
 import java.util.List;
 
@@ -16,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BatchTransactionResponse {
-    private List<TransactionResponse> successful;
+    private List<TransactionDTO> successful;
     private List<BatchError> errors;
     private int totalProcessed;
     private int successCount;
@@ -29,6 +28,6 @@ public class BatchTransactionResponse {
     public static class BatchError {
         private int index;
         private String error;
-        private TransactionCreateRequest request;
+        private CreateTransactionRequest request;
     }
 }

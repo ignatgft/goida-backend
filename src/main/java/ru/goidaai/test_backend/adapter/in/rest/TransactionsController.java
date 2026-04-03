@@ -19,8 +19,6 @@ import ru.goidaai.test_backend.dto.BatchTransactionResponse;
 import ru.goidaai.test_backend.dto.CreateTransactionRequest;
 import ru.goidaai.test_backend.dto.TransactionDTO;
 import ru.goidaai.test_backend.dto.TransactionsPageDTO;
-import ru.goidaai.test_backend.dto.transaction.TransactionCreateRequest;
-import ru.goidaai.test_backend.dto.transaction.TransactionResponse;
 import ru.goidaai.test_backend.service.TransactionsService;
 
 import java.util.ArrayList;
@@ -59,6 +57,7 @@ public class TransactionsController {
     /**
      * Batch создание транзакций
      * Позволяет создать несколько транзакций за один запрос
+     * Каждая транзакция обрабатывается индивидуально - успех/ошибка отдельно
      */
     @PostMapping("/batch")
     public ResponseEntity<BatchTransactionResponse> createBatch(
@@ -66,19 +65,15 @@ public class TransactionsController {
         @Valid @RequestBody BatchTransactionRequest batchRequest
     ) {
         String userId = jwt.getSubject();
-        List<TransactionResponse> successful = new ArrayList<>();
+        List<TransactionDTO> successful = new ArrayList<>();
         List<BatchTransactionResponse.BatchError> errors = new ArrayList<>();
 
         for (int i = 0; i < batchRequest.getTransactions().size(); i++) {
-            TransactionCreateRequest request = batchRequest.getTransactions().get(i);
+            CreateTransactionRequest request = batchRequest.getTransactions().get(i);
             try {
-                // TODO: Вызвать сервис для создания транзакции
-                // Пока заглушка - нужно адаптировать под реальный сервис
-                successful.add(TransactionResponse.builder()
-                    .id("batch-" + i)
-                    .title(request.getTitle())
-                    .amount(request.getAmount())
-                    .build());
+                // Реально вызываем сервис для создания транзакции
+                TransactionDTO transaction = transactionsService.create(userId, request);
+                successful.add(transaction);
             } catch (Exception e) {
                 errors.add(BatchTransactionResponse.BatchError.builder()
                     .index(i)
