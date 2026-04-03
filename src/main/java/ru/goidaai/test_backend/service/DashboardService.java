@@ -77,8 +77,8 @@ public class DashboardService {
         SpendingDTO spending = new SpendingDTO(spent, budget);
 
         // Аналитика с передачей предзагруженных данных (без повторных запросов)
-        BudgetStatusDTO budgetStatus = analyticsService.getBudgetStatus(user, expenses);
-        List<CategorySpendingDTO> categoryBreakdown = analyticsService.getSpendingByCategory(user, expenses);
+        BudgetStatusDTO budgetStatus = analyticsService.getBudgetStatus(user, expenses, period);
+        List<CategorySpendingDTO> categoryBreakdown = analyticsService.getSpendingByCategory(user, expenses, period);
         SpendingTrendDTO trend = analyticsService.getSpendingTrend(user, expenses, period);
 
         // Проценты расходов

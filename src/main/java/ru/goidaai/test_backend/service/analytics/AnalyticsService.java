@@ -60,13 +60,13 @@ public class AnalyticsService {
     public List<CategorySpendingDTO> getSpendingByCategory(String userId, PeriodFilter period) {
         User user = currentUserService.require(userId);
         List<Transaction> expenses = transactionRepository.findAll(expensesSpec(userId, period));
-        return getSpendingByCategory(user, expenses);
+        return getSpendingByCategory(user, expenses, period);
     }
 
     /**
      * ОПТИМИЗИРОВАНО: Статистика с предзагруженными транзакциями
      */
-    public List<CategorySpendingDTO> getSpendingByCategory(User user, List<Transaction> expenses) {
+    public List<CategorySpendingDTO> getSpendingByCategory(User user, List<Transaction> expenses, PeriodFilter period) {
 
         // Группировка по категориям с конвертацией в базовую валюту
         Map<String, List<Transaction>> byCategory = expenses.stream()
@@ -177,13 +177,13 @@ public class AnalyticsService {
     public BudgetStatusDTO getBudgetStatus(String userId, PeriodFilter period) {
         User user = currentUserService.require(userId);
         List<Transaction> expenses = transactionRepository.findAll(expensesSpec(userId, period));
-        return getBudgetStatus(user, expenses);
+        return getBudgetStatus(user, expenses, period);
     }
 
     /**
      * ОПТИМИЗИРОВАНО: Статус бюджета с предзагруженными транзакциями
      */
-    public BudgetStatusDTO getBudgetStatus(User user, List<Transaction> expenses) {
+    public BudgetStatusDTO getBudgetStatus(User user, List<Transaction> expenses, PeriodFilter period) {
 
         BigDecimal spent = expenses.stream()
             .map(t -> ratesService.convertAmount(t.getAmount(), t.getCurrency(), user.getBaseCurrency()))
